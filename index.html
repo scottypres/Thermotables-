@@ -59,7 +59,7 @@
   .btn-secondary:hover { background: #6366f1; }
 
   /* Results table */
-  .results-container { overflow-x: auto; margin-top: 16px; }
+  .results-container { overflow: auto; margin-top: 16px; max-height: 70vh; }
   table {
     width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.88rem;
   }
@@ -102,17 +102,21 @@
   .interp-val .prop-name { color: var(--text-dim); font-size: 0.8rem; }
   .interp-val .prop-val { font-size: 1.1rem; font-weight: 700; color: var(--green); font-family: monospace; }
 
-  /* View Table */
-  .table-scroll { max-height: 70vh; overflow: auto; border-radius: 8px; border: 1px solid var(--border); }
-  .table-scroll table { border-collapse: separate; border-spacing: 0; }
-  .table-scroll table th { top: 0; z-index: 2; }
-  .table-scroll table th:first-child { position: sticky; left: 0; z-index: 3; background: var(--surface2); }
-  .table-scroll table td:first-child {
+  /* Sticky header row + first column for all tables */
+  th { z-index: 2; }
+  th:first-child { position: sticky; left: 0; z-index: 3; background: var(--surface2); border-right: 2px solid var(--border); }
+  td:first-child {
     position: sticky; left: 0; z-index: 1; background: var(--surface);
     border-right: 2px solid var(--border);
   }
-  .table-scroll table tr:hover td:first-child { background: var(--surface2); }
-  .table-scroll table th:first-child { border-right: 2px solid var(--border); }
+  tr:hover td:first-child { background: var(--surface2); }
+  tr.highlight td:first-child { background: rgba(56, 189, 248, 0.35); }
+  tr.highlight-lower td:first-child { background: rgba(74, 222, 128, 0.3); }
+  tr.highlight-upper td:first-child { background: rgba(251, 191, 36, 0.3); }
+  tr.interpolated td:first-child { background: rgba(129, 140, 248, 0.4); }
+
+  /* View Table */
+  .table-scroll { max-height: 70vh; overflow: auto; border-radius: 8px; border: 1px solid var(--border); }
 
   /* Legend */
   .legend { display: flex; gap: 16px; flex-wrap: wrap; margin: 12px 0; font-size: 0.85rem; }
