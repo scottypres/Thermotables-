@@ -154,6 +154,10 @@
           <label>Table</label>
           <select id="lookupTable"></select>
         </div>
+        <div class="form-group" id="lookupByGroup" style="display:none">
+          <label>Lookup By</label>
+          <select id="lookupBy" onchange="onLookupByChange('lookup')"></select>
+        </div>
         <div class="form-group" id="pressureSelectGroup" style="display:none">
           <label>Pressure (kPa)</label>
           <select id="lookupPressure"></select>
@@ -209,6 +213,10 @@
         <div class="form-group">
           <label>Table</label>
           <select id="interpTable"></select>
+        </div>
+        <div class="form-group" id="interpByGroup" style="display:none">
+          <label>Lookup By</label>
+          <select id="interpBy" onchange="onLookupByChange('interp')"></select>
         </div>
         <div class="form-group" id="interpPressureGroup" style="display:none">
           <label>Pressure (kPa)</label>
@@ -267,6 +275,27 @@ function onTableChange(selectId) {
   const info = THERMO_DATA.tables[tableId];
   const prefix = selectId.replace('Table', '');
 
+  // Hide/show "Lookup By" selector for saturated tables (T or P)
+  const byGroup = document.getElementById(prefix + 'ByGroup');
+  if (byGroup) {
+    if (info.type === 'saturated' && info.columns.includes('T') && info.columns.includes('P')) {
+      byGroup.style.display = '';
+      const bySel = document.getElementById(prefix + 'By');
+      bySel.innerHTML = '';
+      const tUnit = info.units[info.columns.indexOf('T')];
+      const pUnit = info.units[info.columns.indexOf('P')];
+      [{v:'T',l:`Temperature (${tUnit})`},{v:'P',l:`Pressure (${pUnit})`}].forEach(o => {
+        const opt = document.createElement('option');
+        opt.value = o.v; opt.textContent = o.l;
+        if (o.v === info.lookup_key) opt.selected = true;
+        bySel.appendChild(opt);
+      });
+      onLookupByChange(prefix);
+    } else {
+      byGroup.style.display = 'none';
+    }
+  }
+
   if (info.type === 'superheated') {
     const group = document.getElementById(prefix + 'PressureGroup') || document.getElementById(prefix + 'PressureSelectGroup');
     if (group) {
@@ -306,16 +335,28 @@ function onTableChange(selectId) {
   }
 }
 
+function onLookupByChange(prefix) {
+  const bySel = document.getElementById(prefix + 'By');
+  if (!bySel) return;
+  const key = bySel.value;
+  const tableId = document.getElementById(prefix + 'Table').value;
+  const info = THERMO_DATA.tables[tableId];
+  const unit = info.units[info.columns.indexOf(key)];
+  const label = document.getElementById(prefix + 'InputLabel');
+  if (label) label.textContent = `${key} (${unit})`;
+}
+
 // Trigger initial state
 ['lookupTable', 'viewTable', 'interpTable'].forEach(id => onTableChange(id));
 
 // ===== HELPERS =====
-function getTableData(tableId, pressureKey) {
+function getTableData(tableId, pressureKey, lookupKeyOverride) {
   const info = THERMO_DATA.tables[tableId];
   if (info.type === 'superheated') {
     return { rows: info.pressures[pressureKey] || [], columns: info.columns, units: info.units, lookupKey: 'T' };
   }
-  return { rows: info.data, columns: info.columns, units: info.units, lookupKey: info.lookup_key };
+  const key = lookupKeyOverride || info.lookup_key;
+  return { rows: info.data, columns: info.columns, units: info.units, lookupKey: key };
 }
 
 function findClosest(rows, key, value) {
@@ -374,10 +415,12 @@ function doLookup() {
   const pressure = document.getElementById('lookupPressure').value;
   const value = parseFloat(document.getElementById('lookupValue').value);
   const showClosest = document.getElementById('showClosest').checked;
+  const bySel = document.getElementById('lookupBy');
+  const lookupByOverride = (bySel && bySel.parentElement.style.display !== 'none') ? bySel.value : null;
 
   if (isNaN(value)) { alert('Please enter a numeric value.'); return; }
 
-  const { rows, columns, units, lookupKey } = getTableData(tableId, pressure);
+  const { rows, columns, units, lookupKey } = getTableData(tableId, pressure, lookupByOverride);
   const { exact, lower, upper } = findClosest(rows, lookupKey, value);
 
   let html = '';
@@ -435,10 +478,12 @@ function doInterpolation() {
   const info = THERMO_DATA.tables[tableId];
   const pressure = document.getElementById('interpPressure').value;
   const value = parseFloat(document.getElementById('interpValue').value);
+  const bySel = document.getElementById('interpBy');
+  const lookupByOverride = (bySel && bySel.parentElement.style.display !== 'none') ? bySel.value : null;
 
   if (isNaN(value)) { alert('Please enter a numeric value.'); return; }
 
-  const { rows, columns, units, lookupKey } = getTableData(tableId, pressure);
+  const { rows, columns, units, lookupKey } = getTableData(tableId, pressure, lookupByOverride);
   const { exact, lower, upper } = findClosest(rows, lookupKey, value);
 
   let html = '';
