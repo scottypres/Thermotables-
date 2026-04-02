@@ -61,7 +61,7 @@
   /* Results table */
   .results-container { overflow-x: auto; margin-top: 16px; }
   table {
-    width: 100%; border-collapse: collapse; font-size: 0.88rem;
+    width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.88rem;
   }
   th {
     background: var(--surface2); color: var(--accent); padding: 10px 12px;
@@ -103,8 +103,16 @@
   .interp-val .prop-val { font-size: 1.1rem; font-weight: 700; color: var(--green); font-family: monospace; }
 
   /* View Table */
-  .table-scroll { max-height: 70vh; overflow-y: auto; border-radius: 8px; border: 1px solid var(--border); }
-  .table-scroll table th { top: 0; z-index: 1; }
+  .table-scroll { max-height: 70vh; overflow: auto; border-radius: 8px; border: 1px solid var(--border); }
+  .table-scroll table { border-collapse: separate; border-spacing: 0; }
+  .table-scroll table th { top: 0; z-index: 2; }
+  .table-scroll table th:first-child { position: sticky; left: 0; z-index: 3; background: var(--surface2); }
+  .table-scroll table td:first-child {
+    position: sticky; left: 0; z-index: 1; background: var(--surface);
+    border-right: 2px solid var(--border);
+  }
+  .table-scroll table tr:hover td:first-child { background: var(--surface2); }
+  .table-scroll table th:first-child { border-right: 2px solid var(--border); }
 
   /* Legend */
   .legend { display: flex; gap: 16px; flex-wrap: wrap; margin: 12px 0; font-size: 0.85rem; }
